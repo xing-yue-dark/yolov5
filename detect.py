@@ -210,32 +210,51 @@ def run(
 
 def parse_opt():
     parser = argparse.ArgumentParser()
+    # 指定一个训练模型，比如现在默认是5s模型，修改成其他的模型
     parser.add_argument('--weights', nargs='+', type=str, default=ROOT / 'yolov5s.pt', help='model path(s)')
-    parser.add_argument('--source', type=str, default=ROOT / 'data/images', help='file/dir/URL/glob, 0 for webcam')
+    # 指定检测图片目录，现在检测的图片目录为date/images
+    # 也可以指定一张图片进行检测，只要把相对目录放进去就好了
+    # 也可以放视频的相对路径进去，他也可以对视频进行预测
+    parser.add_argument('--source', type=str, default=ROOT / 'data/video/watermalun.mp4', help='file/dir/URL/glob, 0 for webcam')
     parser.add_argument('--data', type=str, default=ROOT / 'data/coco128.yaml', help='(optional) dataset.yaml path')
+    # 指定训练时图片大小，当训练结束后会还原回去
     parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=[640], help='inference size h,w')
+    # 置信度，默认设置当置信度大于等于0.25时才会给物体进行画框
     parser.add_argument('--conf-thres', type=float, default=0.25, help='confidence threshold')
+    # 框重叠度，默认当两个框的重叠度iou大于等于 0.45 时， 将这两个框视为一个框（减少框的数量）
     parser.add_argument('--iou-thres', type=float, default=0.45, help='NMS IoU threshold')
     parser.add_argument('--max-det', type=int, default=1000, help='maximum detections per image')
     parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
+    # 显示实时图（指预测完毕后显示图片），action模式有两种方式启动该功能
+    # 1、当在命令行启动该py代码时，在后面添加 --view--img
+    # 2、 在软件中添加默认参数
     parser.add_argument('--view-img', action='store_true', help='show results')
+    # 将数据保存到txt里
     parser.add_argument('--save-txt', action='store_true', help='save results to *.txt')
+    # 将置信度保存到txt里
     parser.add_argument('--save-conf', action='store_true', help='save confidences in --save-txt labels')
     parser.add_argument('--save-crop', action='store_true', help='save cropped prediction boxes')
     parser.add_argument('--nosave', action='store_true', help='do not save images/videos')
+    # 筛选类模型，比如一张图有汽车，有人，有手提包，当你只赋值人给该参数时，只会对人进行检测，其他进行忽略
     parser.add_argument('--classes', nargs='+', type=int, help='filter by class: --classes 0, or --classes 0 2 3')
+    # 是否增强 Iou
     parser.add_argument('--agnostic-nms', action='store_true', help='class-agnostic NMS')
+    # 增强算法
     parser.add_argument('--augment', action='store_true', help='augmented inference')
     parser.add_argument('--visualize', action='store_true', help='visualize features')
     parser.add_argument('--update', action='store_true', help='update all models')
+    # 预测后图片、视频保存位置
     parser.add_argument('--project', default=ROOT / 'runs/detect', help='save results to project/name')
+    # 保存文件夹的名字 默认 exp
     parser.add_argument('--name', default='exp', help='save results to project/name')
+    # 保存位置，当它没有运行时，每跑一次代码都会新建一个exp文件夹，打开后，永远都在一个exp文件夹中保存图片、视频
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     parser.add_argument('--line-thickness', default=3, type=int, help='bounding box thickness (pixels)')
     parser.add_argument('--hide-labels', default=False, action='store_true', help='hide labels')
     parser.add_argument('--hide-conf', default=False, action='store_true', help='hide confidences')
     parser.add_argument('--half', action='store_true', help='use FP16 half-precision inference')
     parser.add_argument('--dnn', action='store_true', help='use OpenCV DNN for ONNX inference')
+    # opt 特别的东西，上面全部属性都会存放在opt中
     opt = parser.parse_args()
     opt.imgsz *= 2 if len(opt.imgsz) == 1 else 1  # expand
     print_args(vars(opt))

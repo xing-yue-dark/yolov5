@@ -474,34 +474,59 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
 
 def parse_opt(known=False):
     parser = argparse.ArgumentParser()
+    # 载入模型进行训练模型参数初始化，可以用作者的，也可以用自己的，但当自己从头开始的时候，建议为空
+    # 参数权重
     parser.add_argument('--weights', type=str, default=ROOT / 'yolov5s.pt', help='initial weights path')
+    # config,也就是选择模型结构，每种模型都有自己的特点，
     parser.add_argument('--cfg', type=str, default='', help='model.yaml path')
+    # 数据集位置
     parser.add_argument('--data', type=str, default=ROOT / 'data/coco128.yaml', help='dataset.yaml path')
+    # 超参数（自带两个）
     parser.add_argument('--hyp', type=str, default=ROOT / 'data/hyps/hyp.scratch-low.yaml', help='hyperparameters path')
+    # 训练轮数（默认300轮）
     parser.add_argument('--epochs', type=int, default=300)
-    parser.add_argument('--batch-size', type=int, default=16, help='total batch size for all GPUs, -1 for autobatch')
+    # 16跑不起来。。4跑起来了。WDNMD，太大了吗
+    # 要把多少张数据集打包起来送到神经网络中训练
+    parser.add_argument('--batch-size', type=int, default=4, help='total batch size for all GPUs, -1 for autobatch')
+    # 训练时图片的大小，不同的结构有不同的大小适配
     parser.add_argument('--imgsz', '--img', '--img-size', type=int, default=640, help='train, val image size (pixels)')
+    # 矩阵推理，能够优化图片的大小，加速模型的训练（不知道缺点是什么）
     parser.add_argument('--rect', action='store_true', help='rectangular training')
+    # 恢复训练，能够通过将 default 的值修改为上一次最佳的训练模型接着训练
     parser.add_argument('--resume', nargs='?', const=True, default=False, help='resume most recent training')
+    # 设置后只保存最后一个训练模型，而不会保存最佳模型
     parser.add_argument('--nosave', action='store_true', help='only save final checkpoint')
     parser.add_argument('--noval', action='store_true', help='only validate final epoch')
+    # 是否采用锚点，（模型有一些种类，分为有锚点的和没有锚点的）（百度看看知识点:锚点、锚框）
+    # 默认开启状态，设置为ture后关闭
     parser.add_argument('--noautoanchor', action='store_true', help='disable AutoAnchor')
     parser.add_argument('--noplots', action='store_true', help='save no plot files')
+    # 对参数有一些净化功能
     parser.add_argument('--evolve', type=int, nargs='?', const=300, help='evolve hyperparameters for x generations')
     parser.add_argument('--bucket', type=str, default='', help='gsutil bucket')
+    # 缓存图片以便更好的训练
     parser.add_argument('--cache', type=str, nargs='?', const='ram', help='--cache images in "ram" (default) or "disk"')
+    # 能对之前训练不好的图片增加一些权重，但效果不太保证
     parser.add_argument('--image-weights', action='store_true', help='use weighted image selection for training')
+    # 用什么硬件训练，开几个线程（建议忽视））
     parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
+    # 会对图片进行一定的变换
     parser.add_argument('--multi-scale', action='store_true', help='vary img-size +/- 50%%')
+    # 询问你训练的模型有几个类别，单类别可以开启（不知道有什么用）
     parser.add_argument('--single-cls', action='store_true', help='train multi-class data as single-class')
     parser.add_argument('--optimizer', type=str, choices=['SGD', 'Adam', 'AdamW'], default='SGD', help='optimizer')
     parser.add_argument('--sync-bn', action='store_true', help='use SyncBatchNorm, only available in DDP mode')
-    parser.add_argument('--workers', type=int, default=8, help='max dataloader workers (per RANK in DDP mode)')
+    # 指数据装载时cpu所使用的线程数，默认为8，还是为0 安全一点，会爆内存
+    parser.add_argument('--workers', type=int, default=0, help='max dataloader workers (per RANK in DDP mode)')
+    # 训练完后文件存储地点
     parser.add_argument('--project', default=ROOT / 'runs/train', help='save to project/name')
+    # 文件夹名称
     parser.add_argument('--name', default='exp', help='save to project/name')
+    # 设置后，每次训练保存文件的地方固定
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     parser.add_argument('--quad', action='store_true', help='quad dataloader')
     parser.add_argument('--cos-lr', action='store_true', help='cosine LR scheduler')
+    # 标签平滑
     parser.add_argument('--label-smoothing', type=float, default=0.0, help='Label smoothing epsilon')
     parser.add_argument('--patience', type=int, default=100, help='EarlyStopping patience (epochs without improvement)')
     parser.add_argument('--freeze', nargs='+', type=int, default=[0], help='Freeze layers: backbone=10, first3=0 1 2')
